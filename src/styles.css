@@ -37,6 +37,8 @@ a{color:inherit;}
 ::selection{background:var(--accent); color:#fff;}
 
 #app{max-width:640px; margin:0 auto; min-height:100vh; position:relative; padding-bottom:120px;}
+#app.panel-mode{padding-bottom:0;}
+@media(min-width:900px){ #app.panel-mode{max-width:none; min-height:0; height:100vh;} }
 
 .brand-logo{border-radius:50%; display:block; object-fit:cover; flex:0 0 auto;}
 
@@ -200,6 +202,16 @@ a{color:inherit;}
 
 .empty-cart{text-align:center; padding:30px 10px; color:var(--muted); font-size:.88rem;}
 
+/* Acesso da equipe: some no meio do branco, só quem sabe que está ali acha. */
+.staff-link{
+  display:flex; align-items:center; justify-content:center; gap:5px;
+  width:100%; margin:26px 0 6px; padding:14px 0;
+  background:none; border:none; color:var(--faint); opacity:.45;
+  font-size:.68rem; text-transform:uppercase; letter-spacing:.05em;
+}
+.staff-link svg{width:11px; height:11px;}
+.staff-link:active{opacity:.8;}
+
 /* ---------- confirmation ---------- */
 .confirm{padding:56px 24px; text-align:center;}
 .confirm .check{width:60px; height:60px; margin:0 auto 18px; color:var(--ok);}
@@ -234,11 +246,20 @@ a{color:inherit;}
 @keyframes shake{10%,90%{transform:translateX(-3px)} 20%,80%{transform:translateX(5px)} 30%,50%,70%{transform:translateX(-8px)} 40%,60%{transform:translateX(8px)}}
 
 /* ---------- panel ---------- */
+/* Feito pra ser usado no computador da loja: em telas largas (≥900px) o
+   painel ocupa a tela toda, com cada coluna rolando por conta própria (o
+   cabeçalho de cada coluna fica sempre visível, sem precisar rolar a
+   página inteira pra ver os últimos pedidos). */
 #panel-wrap{max-width:1100px; margin:0 auto; padding-bottom:100px;}
 .panel-top{
   position:sticky; top:0; z-index:40; display:flex; align-items:center; justify-content:space-between;
   padding:12px 18px; background:rgba(255,255,255,.92); backdrop-filter:blur(10px); border-bottom:1px solid var(--line);
   gap:10px;
+}
+@media(min-width:900px){
+  #panel-wrap{max-width:none; padding:0 24px 0; height:100vh; display:flex; flex-direction:column;}
+  .panel-top{padding:16px 4px;}
+  .panel-top .brand-mini{font-size:1.05rem;}
 }
 .panel-top .left{display:flex; align-items:center; gap:10px;}
 .sync-dot{width:8px; height:8px; border-radius:50%; background:var(--ok);}
@@ -246,13 +267,24 @@ a{color:inherit;}
 .icon-btn{background:var(--surface); border:1px solid var(--line); color:var(--ink); width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;}
 .icon-btn svg{width:16px;height:16px;}
 
-.board{display:flex; gap:14px; overflow-x:auto; padding:16px; scroll-snap-type:x proximity;}
-.col{flex:0 0 84%; max-width:320px; scroll-snap-align:start;}
-@media(min-width:760px){ .col{flex:1 1 0;} }
-.col-head{display:flex; align-items:center; justify-content:space-between; padding:0 4px 10px; border-bottom:2px solid var(--col-c,var(--accent));}
-.col-head h3{font-size:.92rem; color:var(--col-c,var(--ink));}
+.board{
+  display:grid; grid-auto-flow:column; grid-auto-columns:minmax(150px,1fr);
+  gap:12px; overflow-x:auto; padding:16px; scroll-snap-type:x proximity; align-items:start;
+}
+.col{min-width:0; overflow:hidden; scroll-snap-align:start;}
+.col-head{display:flex; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:2px 8px; padding:0 4px 10px; border-bottom:2px solid var(--col-c,var(--accent));}
+.col-head h3{font-size:.78rem; min-width:0; overflow-wrap:break-word; color:var(--col-c,var(--ink));}
 .col-head .n{font-family:'Space Mono'; font-size:.8rem; color:var(--muted); background:var(--surface-2); border-radius:99px; padding:2px 9px;}
 .col-body{display:flex; flex-direction:column; gap:10px; padding-top:12px; min-height:60px;}
+@media(min-width:900px){
+  /* Kanban de verdade: cabeçalho de cada coluna fixo, e a lista de pedidos
+     dela rola por conta própria — sem precisar rolar a página toda. */
+  .board{grid-template-columns:repeat(5,1fr); grid-template-rows:1fr; grid-auto-columns:unset; flex:1; min-height:0; overflow:visible; padding:20px 4px; align-items:stretch;}
+  .col{display:flex; flex-direction:column; min-height:0; overflow:visible; background:var(--surface-2); border-radius:14px; padding:0 10px;}
+  .col-head{font-size:.85rem; padding-top:12px; padding-bottom:12px;}
+  .col-head h3{font-size:.82rem;}
+  .col-body{flex:1; overflow-y:auto; padding-right:4px; padding-bottom:16px;}
+}
 .col-empty{color:var(--faint); font-size:.78rem; text-align:center; padding:20px 6px; border:1px dashed var(--line); border-radius:12px;}
 
 .ticket{
@@ -287,3 +319,22 @@ a{color:inherit;}
 .fab svg{width:16px;height:16px;}
 
 .panel-msg{margin:40px 20px; padding:16px; border:1px dashed var(--line); border-radius:12px; color:var(--muted); font-size:.85rem; text-align:center;}
+
+
+/* ---------- popup de confirmação (troca o window.confirm padrão) ---------- */
+.confirm-backdrop{
+  position:fixed; inset:0; z-index:80; background:rgba(21,16,14,.5);
+  display:flex; align-items:center; justify-content:center; padding:20px;
+}
+.confirm-dialog{
+  width:100%; max-width:340px; background:var(--surface); border-radius:18px;
+  padding:24px 22px; box-shadow:var(--shadow-lg); text-align:center;
+}
+.confirm-dialog h3{font-size:1.05rem; margin-bottom:8px; color:var(--ink);}
+.confirm-dialog p{color:var(--muted); font-size:.86rem; line-height:1.4; margin-bottom:20px;}
+.confirm-dialog-actions{display:flex; gap:10px;}
+.cd-btn{flex:1; padding:12px; border-radius:10px; font-weight:800; font-size:.82rem; border:none;}
+.cd-ghost{background:var(--surface-2); border:1px solid var(--line); color:var(--ink);}
+.cd-solid{background:var(--ink); color:#fff;}
+.cd-danger{background:var(--accent); color:#fff;}
+.cd-danger:active, .cd-solid:active, .cd-ghost:active{transform:scale(.97);}

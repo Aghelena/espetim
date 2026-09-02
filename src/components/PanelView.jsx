@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import PinGate from "./PinGate.jsx";
 import Ticket from "./Ticket.jsx";
 import NewOrderSheet from "./NewOrderSheet.jsx";
+import ConfirmDialog from "./ConfirmDialog.jsx";
 import { useOrders } from "../hooks/useOrders.js";
 import { STATUS_FLOW, STATUS_LABEL, STATUS_COLOR } from "../data/menu.js";
 import { BackIcon, LogoutIcon, PlusIcon } from "../icons.jsx";
@@ -18,6 +19,7 @@ export default function PanelView({ onGoClient }) {
     }
   });
   const [newOrderOpen, setNewOrderOpen] = useState(false);
+  const [cancelTarget, setCancelTarget] = useState(null); // id do pedido esperando confirmação
   const { orders, addOrder, advanceOrder, cancelOrder, synced } = useOrders();
   const cloudOn = synced === true;
   const [, forceTick] = useState(0);
@@ -46,7 +48,11 @@ export default function PanelView({ onGoClient }) {
   }
 
   function handleCancel(id) {
-    if (window.confirm("Cancelar este pedido?")) cancelOrder(id);
+    setCancelTarget(id);
+  }
+  function confirmCancel() {
+    if (cancelTarget) cancelOrder(cancelTarget);
+    setCancelTarget(null);
   }
   function handleSave(data) {
     addOrder(data);
@@ -134,10 +140,17 @@ export default function PanelView({ onGoClient }) {
         <PlusIcon /> Novo pedido
       </button>
 
-      {newOrderOpen && (
-        <NewOrderSheet
-          onClose={() => setNewOrderOpen(false)}
-          onSave={handleSave}
+      {newOrderOpen && <NewOrderSheet onClose={() => setNewOrderOpen(false)} onSave={handleSave} />}
+
+      {cancelTarget && (
+        <ConfirmDialog
+          title="Cancelar pedido"
+          message="Tem certeza que quer cancelar este pedido? Essa ação não pode ser desfeita."
+          confirmLabel="Cancelar pedido"
+          cancelLabel="Voltar"
+          danger
+          onConfirm={confirmCancel}
+          onCancel={() => setCancelTarget(null)}
         />
       )}
     </div>

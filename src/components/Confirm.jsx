@@ -1,4 +1,4 @@
-import { CheckIcon, WhatsIcon } from "../icons.jsx";
+import { CheckIcon, WhatsIcon, LockIcon } from "../icons.jsx";
 import Logo from "./Logo.jsx";
 import { brl } from "../utils.js";
 import { WHATSAPP_NUMBER } from "../data/menu.js";
@@ -13,8 +13,8 @@ export default function Confirm({ order, onGoPanel, onNewOrder }) {
     <>
       <div className="topbar">
         <div className="brand-mini"><Logo size={30} /> Espetim do Nin</div>
-        <button type="button" className="mode-btn" onClick={onGoPanel}>Equipe</button>
       </div>
+
       <div className="confirm">
         <div className="check"><CheckIcon /></div>
         <h2>Pedido pronto para envio!</h2>
@@ -28,6 +28,10 @@ export default function Confirm({ order, onGoPanel, onNewOrder }) {
           <button type="button" className="btn-ghost" onClick={onNewOrder}>Fazer novo pedido</button>
         </div>
       </div>
+
+      <button type="button" className="staff-link" onClick={onGoPanel}>
+        <LockIcon /> equipe
+      </button>
     </>
   );
 }

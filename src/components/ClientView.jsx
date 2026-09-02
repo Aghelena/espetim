@@ -115,7 +115,6 @@ export default function ClientView({ onGoPanel }) {
     <>
       <div className="topbar">
         <div className="brand-mini"><Logo size={30} /> Espetim do Nin</div>
-        <button type="button" className="mode-btn" onClick={onGoPanel}><LockIcon /> Equipe</button>
       </div>
 
       <section className="hero">
@@ -158,6 +157,12 @@ export default function ClientView({ onGoPanel }) {
           onSubmit={submitOrder}
         />
       )}
+{/* Acesso da equipe: bem discreto de propósito, pra não chamar a
+          atenção de clientes. No computador da loja, o jeito prático é
+          salvar o link direto (termina em "#painel") nos favoritos. */}
+      <button type="button" className="staff-link" onClick={onGoPanel}>
+        <LockIcon /> equipe
+      </button>
     </>
   );
 }

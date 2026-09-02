@@ -19,7 +19,7 @@ export const DELIVERY_FEE = 10;
 
 // Horário de funcionamento. day: 0=domingo ... 6=sábado.
 export const HOURS = [
-  { day: 2, label: "Terça", open: 17, close: 23 },
+  { day: 2, label: "Terça", open: 17, close: 24 },
   { day: 3, label: "Quarta", open: 17, close: 22 },
   { day: 4, label: "Quinta", open: 17, close: 22 },
   { day: 5, label: "Sexta", open: 17, close: 22 },
