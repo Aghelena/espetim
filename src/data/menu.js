@@ -51,6 +51,7 @@ export const MENU = [
       { id: "esp-kafta", name: "Kafta", price: 12 },
       { id: "esp-coalho", name: "Queijo Coalho", price: 13 },
       { id: "esp-coalho-mel", name: "Queijo Coalho com Mel", price: 14 },
+      { id: "esp-pao", name: "Pão de Alho", price: 8 }
     ],
   },
   {
