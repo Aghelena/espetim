@@ -9,7 +9,7 @@ import { MENU, WHATSAPP_NUMBER, FREE_ZONES, DELIVERY_FEE, PAY_METHODS } from "..
 import { brl, cartLines, subtotalOf, deliveryFeeFor, isOpenNow, nextOpeningLabel, genCode } from "../utils.js";
 import { useOrders } from "../hooks/useOrders.js";
 
-const EMPTY_CHECKOUT = { fulfillment: "retirada", neighborhood: "", address: "", reference: "", payment: "", name: "", phone: "", notes: "" };
+const EMPTY_CHECKOUT = { fulfillment: "retirada", cep: "", neighborhood: "", address: "", reference: "", payment: "", name: "", phone: "", notes: "" };
 
 export default function ClientView({ onGoPanel }) {
   const [activeCat, setActiveCat] = useState(MENU[0].id);
@@ -21,6 +21,7 @@ export default function ClientView({ onGoPanel }) {
   const [open, setOpen] = useState(isOpenNow());
   const { addOrder } = useOrders();
 
+  // Recalcula "aberto/fechado" a cada minuto, sem precisar recarregar a página.
   useEffect(() => {
     const t = setInterval(() => setOpen(isOpenNow()), 60000);
     return () => clearInterval(t);
@@ -52,7 +53,7 @@ export default function ClientView({ onGoPanel }) {
     out += `Entrega: ${fee === 0 ? "Grátis" : brl(fee)}\n`;
     out += `*Total: ${brl(total)}*\n\n`;
     if (checkout.fulfillment === "entrega") {
-      out += `*Entrega em:* ${checkout.address}${checkout.reference ? " (ref: " + checkout.reference + ")" : ""} — ${checkout.neighborhood}\n`;
+      out += `*Entrega em:* ${checkout.address}${checkout.reference ? " (ref: " + checkout.reference + ")" : ""} — ${checkout.neighborhood}${checkout.cep ? " (CEP " + checkout.cep + ")" : ""}\n`;
     } else {
       out += `*Retirada no local*\n`;
     }
@@ -75,12 +76,16 @@ export default function ClientView({ onGoPanel }) {
     const message = buildMessage(code, lines, subtotal, fee, total);
     const order = { code, total, message };
 
+    // Cai no painel como "Aguardando pagamento" assim que o cliente confirma
+    // o envio — não precisa esperar a resposta do Firestore para abrir o
+    // WhatsApp, então isso não atrasa nem trava o pedido.
     addOrder(
       {
         code,
         customerName: checkout.name,
         customerPhone: checkout.phone,
         fulfillment: checkout.fulfillment,
+        cep: checkout.fulfillment === "entrega" ? checkout.cep : "",
         neighborhood: checkout.fulfillment === "entrega" ? checkout.neighborhood : "",
         address: checkout.fulfillment === "entrega" ? checkout.address : "",
         reference: checkout.fulfillment === "entrega" ? checkout.reference : "",
@@ -95,6 +100,8 @@ export default function ClientView({ onGoPanel }) {
       "aguardando_pagamento"
     );
 
+    // Abre o WhatsApp já com a mensagem pronta — esse é o clique do usuário,
+    // então window.open funciona sem ser bloqueado como pop-up.
     window.open("https://wa.me/" + WHATSAPP_NUMBER + "?text=" + encodeURIComponent(message), "_blank");
 
     setLastOrder(order);
@@ -105,7 +112,13 @@ export default function ClientView({ onGoPanel }) {
   }
 
   if (lastOrder) {
-    return <Confirm order={lastOrder} onGoPanel={onGoPanel} onNewOrder={() => setLastOrder(null)} />;
+    return (
+      <Confirm
+        order={lastOrder}
+        onGoPanel={onGoPanel}
+        onNewOrder={() => setLastOrder(null)}
+      />
+    );
   }
 
   const count = Object.values(cart).reduce((a, b) => a + b, 0);
@@ -157,7 +170,8 @@ export default function ClientView({ onGoPanel }) {
           onSubmit={submitOrder}
         />
       )}
-{/* Acesso da equipe: bem discreto de propósito, pra não chamar a
+
+      {/* Acesso da equipe: bem discreto de propósito, pra não chamar a
           atenção de clientes. No computador da loja, o jeito prático é
           salvar o link direto (termina em "#painel") nos favoritos. */}
       <button type="button" className="staff-link" onClick={onGoPanel}>

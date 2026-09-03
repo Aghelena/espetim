@@ -20,10 +20,10 @@ export const DELIVERY_FEE = 10;
 // Horário de funcionamento. day: 0=domingo ... 6=sábado.
 export const HOURS = [
   { day: 2, label: "Terça", open: 17, close: 24 },
-  { day: 3, label: "Quarta", open: 17, close: 22 },
-  { day: 4, label: "Quinta", open: 17, close: 22 },
-  { day: 5, label: "Sexta", open: 17, close: 22 },
-  { day: 6, label: "Sábado", open: 14, close: 22 },
+  { day: 3, label: "Quarta", open: 17, close: 24 },
+  { day: 4, label: "Quinta", open: 17, close: 24 },
+  { day: 5, label: "Sexta", open: 17, close: 24 },
+  { day: 6, label: "Sábado", open: 14, close: 24 },
 ];
 
 // Fuso horário usado para calcular se a loja está aberta agora.

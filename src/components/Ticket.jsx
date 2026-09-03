@@ -1,11 +1,20 @@
+import { useState } from "react";
 import { PAY_METHODS, STATUS_COLOR, STATUS_ACTION } from "../data/menu.js";
 import { brl, timeAgo } from "../utils.js";
-import { CheckIcon } from "../icons.jsx";
+import { CheckIcon, CalcIcon } from "../icons.jsx";
+import ChangeCalcDialog from "./ChangeCalcDialog.jsx";
 
-export default function Ticket({ order, onAdvance, onCancel }) {
+export default function Ticket({ order, onAdvance, onCancel, onSaveChange }) {
+  const [calcOpen, setCalcOpen] = useState(false);
   const isEntrega = order.fulfillment === "entrega";
+  const isDinheiro = order.payment === "dinheiro";
   const color = STATUS_COLOR[order.status];
   const action = STATUS_ACTION[order.status];
+
+  function saveChange(received, change) {
+    onSaveChange(order.id, received, change);
+    setCalcOpen(false);
+  }
 
   return (
     <div className="ticket" style={{ "--col-c": color }}>
@@ -32,6 +41,19 @@ export default function Ticket({ order, onAdvance, onCancel }) {
       </div>
       {isEntrega && order.address && <div className="ticket-items">{order.address}</div>}
       {order.notes && <div className="ticket-notes">"{order.notes}"</div>}
+
+      {isDinheiro && (
+        order.cashReceived != null ? (
+          <button type="button" className="ticket-change" onClick={() => setCalcOpen(true)}>
+            <CalcIcon /> Recebido {brl(order.cashReceived)} · Troco {brl(order.changeGiven || 0)}
+          </button>
+        ) : (
+          <button type="button" className="ticket-change ticket-change-empty" onClick={() => setCalcOpen(true)}>
+            <CalcIcon /> Calcular troco
+          </button>
+        )
+      )}
+
       <div className="ticket-bottom">
         <span className="ticket-total num">{brl(order.total || 0)}</span>
         {action ? (
@@ -42,6 +64,15 @@ export default function Ticket({ order, onAdvance, onCancel }) {
           <span className="ticket-done"><CheckIcon /> Entregue</span>
         )}
       </div>
+
+      {calcOpen && (
+        <ChangeCalcDialog
+          total={order.total || 0}
+          initialReceived={order.cashReceived}
+          onSave={saveChange}
+          onCancel={() => setCalcOpen(false)}
+        />
+      )}
     </div>
   );
 }

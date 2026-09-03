@@ -1,5 +1,7 @@
+import { useRef, useState } from "react";
 import { FREE_ZONES, DELIVERY_FEE, PAY_METHODS } from "../data/menu.js";
 import { brl, cartLines, subtotalOf, deliveryFeeFor, nextOpeningLabel } from "../utils.js";
+import { lookupCEP, formatCEP } from "../cep.js";
 import { WhatsIcon } from "../icons.jsx";
 
 export default function CheckoutSheet({ cart, setCart, checkout, setCheckout, formErr, open, onClose, onSubmit }) {
@@ -7,6 +9,9 @@ export default function CheckoutSheet({ cart, setCart, checkout, setCheckout, fo
   const subtotal = subtotalOf(cart);
   const fee = deliveryFeeFor(checkout.fulfillment, checkout.neighborhood);
   const total = subtotal + (fee || 0);
+  const [cepStatus, setCepStatus] = useState("idle"); // idle | loading | found | notfound
+  const [cepBairro, setCepBairro] = useState("");
+  const lastLookedUp = useRef("");
 
   function field(name, value) {
     setCheckout((c) => ({ ...c, [name]: value }));
@@ -15,6 +20,37 @@ export default function CheckoutSheet({ cart, setCart, checkout, setCheckout, fo
     const next = { ...cart };
     delete next[id];
     setCart(next);
+  }
+
+  // Preenche o endereço a partir do CEP (ViaCEP). Se o bairro devolvido
+  // bater com um dos bairros já cadastrados, seleciona ele sozinho; senão
+  // só avisa qual foi encontrado, pra pessoa escolher o mais próximo.
+  async function handleCep(raw) {
+    const formatted = formatCEP(raw);
+    field("cep", formatted);
+    const digits = formatted.replace(/\D/g, "");
+    if (digits.length < 8) {
+      setCepStatus("idle");
+      setCepBairro("");
+      return;
+    }
+    if (digits === lastLookedUp.current) return;
+    lastLookedUp.current = digits;
+    setCepStatus("loading");
+    const found = await lookupCEP(digits);
+    if (!found) {
+      setCepStatus("notfound");
+      setCepBairro("");
+      return;
+    }
+    setCepStatus("found");
+    setCepBairro(found.bairro || "");
+    setCheckout((c) => ({
+      ...c,
+      address: c.address.trim() ? c.address : found.logradouro || c.address,
+    }));
+    const match = FREE_ZONES.find((z) => z.toLowerCase() === (found.bairro || "").toLowerCase());
+    if (match) field("neighborhood", match);
   }
 
   return (
@@ -63,6 +99,21 @@ export default function CheckoutSheet({ cart, setCart, checkout, setCheckout, fo
 
             {checkout.fulfillment === "entrega" && (
               <>
+                <div className="field">
+                  <label>CEP (opcional, preenche o endereço)</label>
+                  <input
+                    value={checkout.cep || ""}
+                    placeholder="00000-000"
+                    inputMode="numeric"
+                    maxLength={9}
+                    onChange={(e) => handleCep(e.target.value)}
+                  />
+                  {cepStatus === "loading" && <p className="cep-hint">Buscando endereço…</p>}
+                  {cepStatus === "notfound" && <p className="cep-hint cep-warn">CEP não encontrado — preenche o endereço abaixo à mão.</p>}
+                  {cepStatus === "found" && cepBairro && !FREE_ZONES.some((z) => z.toLowerCase() === cepBairro.toLowerCase()) && (
+                    <p className="cep-hint">Endereço encontrado — bairro "{cepBairro}". Selecione o bairro mais próximo abaixo.</p>
+                  )}
+                </div>
                 <div className={"field" + (formErr === "bairro" ? " error" : "")}>
                   <label>Bairro</label>
                   <select value={checkout.neighborhood} onChange={(e) => field("neighborhood", e.target.value)}>

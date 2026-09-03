@@ -199,6 +199,8 @@ a{color:inherit;}
 .btn-primary svg{width:18px;height:18px;}
 .closed-note{font-size:.78rem; color:var(--accent-dark); text-align:center; margin-top:8px;}
 .err-note{font-size:.78rem; color:var(--accent-dark); text-align:center; margin-bottom:10px;}
+.cep-hint{font-size:.74rem; color:var(--muted); margin-top:6px; line-height:1.4;}
+.cep-hint.cep-warn{color:var(--accent-dark);}
 
 .empty-cart{text-align:center; padding:30px 10px; color:var(--muted); font-size:.88rem;}
 
@@ -302,6 +304,13 @@ a{color:inherit;}
 .ticket-items{font-size:.8rem; color:var(--muted); margin-bottom:8px; line-height:1.5;}
 .ticket-items b{color:var(--ink); font-weight:600;}
 .ticket-notes{font-size:.76rem; color:var(--accent-dark); margin-bottom:8px; font-style:italic;}
+.ticket-change{
+  display:flex; align-items:center; gap:6px; width:100%; margin-bottom:8px;
+  padding:7px 9px; border-radius:8px; border:1px dashed var(--line); background:var(--surface-2);
+  color:var(--ink); font-size:.74rem; font-weight:700; text-align:left;
+}
+.ticket-change svg{width:13px; height:13px; flex:0 0 auto;}
+.ticket-change-empty{color:var(--accent-dark); border-color:rgba(224,34,26,.3); background:var(--accent-tint);}
 .ticket-bottom{display:flex; align-items:center; justify-content:space-between; gap:8px;}
 .ticket-total{font-family:'Space Mono'; font-weight:700; color:var(--ink);}
 .ticket-advance{
@@ -320,7 +329,6 @@ a{color:inherit;}
 
 .panel-msg{margin:40px 20px; padding:16px; border:1px dashed var(--line); border-radius:12px; color:var(--muted); font-size:.85rem; text-align:center;}
 
-
 /* ---------- popup de confirmação (troca o window.confirm padrão) ---------- */
 .confirm-backdrop{
   position:fixed; inset:0; z-index:80; background:rgba(21,16,14,.5);
@@ -338,3 +346,37 @@ a{color:inherit;}
 .cd-solid{background:var(--ink); color:#fff;}
 .cd-danger{background:var(--accent); color:#fff;}
 .cd-danger:active, .cd-solid:active, .cd-ghost:active{transform:scale(.97);}
+.cd-btn:disabled{opacity:.4;}
+
+/* calculadora de troco */
+.change-result{
+  margin:-6px 0 18px; padding:12px; border-radius:10px; background:var(--ok-tint); color:var(--ok);
+  font-weight:800; font-size:.95rem; text-align:center;
+}
+.change-result.neg{background:var(--accent-tint); color:var(--accent-dark);}
+
+/* ---------- fechamento de caixa ---------- */
+.closing-hint{font-size:.82rem; color:var(--muted); margin-bottom:14px; line-height:1.5;}
+.closing-cash-note{
+  font-size:.76rem; color:var(--muted); background:var(--surface-2); border-radius:10px;
+  padding:10px 12px; margin:2px 0 16px; line-height:1.5;
+}
+.closing-history{margin-top:22px; border-top:1px dashed var(--line); padding-top:14px;}
+.closing-history label{display:block; font-size:.72rem; text-transform:uppercase; letter-spacing:.05em; color:var(--muted); font-weight:700; margin-bottom:8px;}
+.closing-history-row{display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:.82rem; color:var(--ink); padding:6px 0; border-bottom:1px dashed var(--line);}
+.closing-history-row:last-child{border-bottom:none;}
+.closing-history-row .row-dl{
+  background:transparent; border:none; color:var(--muted); width:22px; height:22px; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center; border-radius:6px; cursor:pointer;
+}
+.closing-history-row .row-dl:hover{color:var(--ink); background:var(--surface-2);}
+.closing-history-row .row-dl svg{width:14px; height:14px;}
+.closing-done{text-align:center; padding:20px 6px;}
+.closing-done svg{width:40px; height:40px; color:var(--ok); margin-bottom:12px;}
+.closing-done p{color:var(--muted); font-size:.9rem; margin-bottom:18px; line-height:1.5;}
+.btn-export{
+  display:flex; align-items:center; justify-content:center; gap:6px; width:100%;
+  padding:11px; border-radius:10px; border:1px dashed var(--line); background:var(--surface-2);
+  color:var(--ink); font-size:.85rem; font-weight:700; margin-bottom:10px; cursor:pointer;
+}
+.btn-export svg{width:15px; height:15px;}

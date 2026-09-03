@@ -14,6 +14,18 @@ import {
 
 const STORAGE_KEY = "espetim_orders_v1";
 
+// -----------------------------------------------------------------------
+// Guarda e sincroniza os pedidos.
+//
+// Com o Firebase configurado (veja src/firebase.js), os pedidos ficam no
+// Firestore: o celular do cliente e o painel — em qualquer aparelho —
+// enxergam a mesma lista, em tempo real.
+//
+// Sem o Firebase configurado, cai automaticamente para o localStorage do
+// navegador: continua funcionando, mas só sincroniza entre abas do MESMO
+// aparelho (é o modo "básico", sem nenhuma configuração extra).
+// -----------------------------------------------------------------------
+
 function loadLocal() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -26,13 +38,16 @@ function loadLocal() {
 function saveLocal(orders) {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(orders));
-  } catch (e) {}
+  } catch (e) {
+    /* localStorage indisponível — segue só em memória */
+  }
 }
 
 export function useOrders() {
   const [orders, setOrders] = useState(isFirebaseConfigured ? [] : loadLocal);
-  const [synced, setSynced] = useState(false);
+  const [synced, setSynced] = useState(false); // true = conectado na nuvem (Firestore)
 
+  // ---- modo Firestore (nuvem) ----
   useEffect(() => {
     if (!isFirebaseConfigured) return;
     const q = query(collection(db, "orders"), orderBy("createdAt", "asc"));
@@ -47,6 +62,7 @@ export function useOrders() {
     return unsub;
   }, []);
 
+  // ---- modo localStorage (mesmo aparelho, entre abas) ----
   useEffect(() => {
     if (isFirebaseConfigured) return;
     function onStorage(e) {
@@ -93,6 +109,20 @@ export function useOrders() {
     [orders]
   );
 
+  // Atualiza campos soltos de um pedido (ex: valor recebido/troco da
+  // calculadora de dinheiro) sem mexer no status.
+  const updateOrder = useCallback((id, patch) => {
+    if (isFirebaseConfigured) {
+      return updateDoc(doc(db, "orders", id), { ...patch, updatedAt: Date.now() });
+    }
+    setOrders((prev) => {
+      const next = prev.map((o) => (o.id === id ? { ...o, ...patch, updatedAt: Date.now() } : o));
+      saveLocal(next);
+      return next;
+    });
+    return Promise.resolve();
+  }, []);
+
   const cancelOrder = useCallback((id) => {
     if (isFirebaseConfigured) {
       return deleteDoc(doc(db, "orders", id));
@@ -104,5 +134,29 @@ export function useOrders() {
     });
   }, []);
 
-  return { orders, addOrder, advanceOrder, cancelOrder, synced: isFirebaseConfigured ? synced : "local" };
+  // Remove vários pedidos de uma vez — usado no fechamento de caixa pra
+  // tirar do quadro os pedidos do dia que já foram arquivados.
+  const removeOrders = useCallback((ids) => {
+    if (!ids || ids.length === 0) return Promise.resolve();
+    if (isFirebaseConfigured) {
+      return Promise.all(ids.map((id) => deleteDoc(doc(db, "orders", id))));
+    }
+    setOrders((prev) => {
+      const idSet = new Set(ids);
+      const next = prev.filter((o) => !idSet.has(o.id));
+      saveLocal(next);
+      return next;
+    });
+    return Promise.resolve();
+  }, []);
+
+  return {
+    orders,
+    addOrder,
+    advanceOrder,
+    updateOrder,
+    cancelOrder,
+    removeOrders,
+    synced: isFirebaseConfigured ? synced : "local",
+  };
 }

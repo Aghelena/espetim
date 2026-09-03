@@ -49,6 +49,28 @@ export function nextOpeningLabel() {
   return "";
 }
 
+// "YYYY-MM-DD" no fuso da loja — usado pra saber se um pedido é "de hoje" e
+// pra nomear o arquivo exportado, sem depender do fuso do navegador de quem
+// está usando o painel.
+export function storeDateKey(ts = Date.now()) {
+  // Alguns pedidos arquivados em fechamentos antigos não guardaram
+  // horário — cai no dia de hoje em vez de travar a formatação.
+  const t = Number.isFinite(ts) ? ts : Date.now();
+  const fmt = new Intl.DateTimeFormat("en-CA", { timeZone: TIME_ZONE, year: "numeric", month: "2-digit", day: "2-digit" });
+  return fmt.format(new Date(t));
+}
+
+export function isToday(ts) {
+  return storeDateKey(ts) === storeDateKey();
+}
+
+// "HH:mm" no fuso da loja, pra colocar no relatório exportado.
+export function storeTimeLabel(ts) {
+  const t = Number.isFinite(ts) ? ts : Date.now();
+  const fmt = new Intl.DateTimeFormat("pt-BR", { timeZone: TIME_ZONE, hour: "2-digit", minute: "2-digit", hour12: false });
+  return fmt.format(new Date(t));
+}
+
 export function timeAgo(ts) {
   const mins = Math.max(0, Math.floor((Date.now() - ts) / 60000));
   if (mins < 1) return "agora";

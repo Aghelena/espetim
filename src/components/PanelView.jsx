@@ -3,10 +3,14 @@ import PinGate from "./PinGate.jsx";
 import Ticket from "./Ticket.jsx";
 import NewOrderSheet from "./NewOrderSheet.jsx";
 import ConfirmDialog from "./ConfirmDialog.jsx";
+import ClosingSheet from "./ClosingSheet.jsx";
 import { useOrders } from "../hooks/useOrders.js";
+import { useClosings } from "../hooks/useClosings.js";
 import { STATUS_FLOW, STATUS_LABEL, STATUS_COLOR } from "../data/menu.js";
-import { BackIcon, LogoutIcon, PlusIcon } from "../icons.jsx";
+import { BackIcon, LogoutIcon, PlusIcon, DownloadIcon, CashIcon } from "../icons.jsx";
 import Logo from "./Logo.jsx";
+import { exportTodayOrders } from "../csv.js";
+import { storeDateKey } from "../utils.js";
 
 const UNLOCK_KEY = "espetim_panel_unlocked";
 
@@ -19,8 +23,10 @@ export default function PanelView({ onGoClient }) {
     }
   });
   const [newOrderOpen, setNewOrderOpen] = useState(false);
+  const [closingOpen, setClosingOpen] = useState(false);
   const [cancelTarget, setCancelTarget] = useState(null); // id do pedido esperando confirmação
-  const { orders, addOrder, advanceOrder, cancelOrder, synced } = useOrders();
+  const { orders, addOrder, advanceOrder, updateOrder, cancelOrder, removeOrders, synced } = useOrders();
+  const { closings, addClosing } = useClosings();
   const cloudOn = synced === true;
   const [, forceTick] = useState(0);
 
@@ -58,38 +64,30 @@ export default function PanelView({ onGoClient }) {
     addOrder(data);
     setNewOrderOpen(false);
   }
+  function handleExport() {
+    const today = storeDateKey();
+    const fromClosings = closings.filter((c) => c.dateKey === today).flatMap((c) => c.orders || []);
+    exportTodayOrders([...orders, ...fromClosings]);
+  }
+  function handleSaveChange(id, cashReceived, changeGiven) {
+    updateOrder(id, { cashReceived, changeGiven });
+  }
 
   return (
     <div id="panel-wrap">
       <div className="panel-top">
         <div className="left">
-          <span
-            className={"sync-dot" + (cloudOn ? "" : " off")}
-            title={cloudOn ? "Sincronizado na nuvem" : "Somente neste aparelho"}
-          />
-          <div className="brand-mini">
-            <Logo size={30} /> Painel · Espetim do Nin
-          </div>
+          <span className={"sync-dot" + (cloudOn ? "" : " off")} title={cloudOn ? "Sincronizado na nuvem" : "Somente neste aparelho"} />
+          <div className="brand-mini"><Logo size={30} /> Painel · Espetim do Nin</div>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <button
-            type="button"
-            className="icon-btn"
-            title="Ver página do cliente"
-            onClick={onGoClient}
-          >
-            <BackIcon />
-          </button>
-          <button
-            type="button"
-            className="icon-btn"
-            title="Sair"
-            onClick={lock}
-          >
-            <LogoutIcon />
-          </button>
+          <button type="button" className="icon-btn" title="Fechamento de caixa" onClick={() => setClosingOpen(true)}><CashIcon /></button>
+          <button type="button" className="icon-btn" title="Exportar pedidos de hoje (CSV)" onClick={handleExport}><DownloadIcon /></button>
+          <button type="button" className="icon-btn" title="Ver página do cliente" onClick={onGoClient}><BackIcon /></button>
+          <button type="button" className="icon-btn" title="Sair" onClick={lock}><LogoutIcon /></button>
         </div>
       </div>
+
       {!cloudOn && (
         <div className="panel-msg">
           {synced === "local"
@@ -100,15 +98,9 @@ export default function PanelView({ onGoClient }) {
 
       <div className="board">
         {STATUS_FLOW.map((status) => {
-          const list = orders
-            .filter((o) => o.status === status)
-            .sort((a, b) => a.createdAt - b.createdAt);
+          const list = orders.filter((o) => o.status === status).sort((a, b) => a.createdAt - b.createdAt);
           return (
-            <div
-              className="col"
-              style={{ "--col-c": STATUS_COLOR[status] }}
-              key={status}
-            >
+            <div className="col" style={{ "--col-c": STATUS_COLOR[status] }} key={status}>
               <div className="col-head">
                 <h3>{STATUS_LABEL[status]}</h3>
                 <span className="n">{list.length}</span>
@@ -118,12 +110,7 @@ export default function PanelView({ onGoClient }) {
                   <div className="col-empty">Nenhum pedido</div>
                 ) : (
                   list.map((o) => (
-                    <Ticket
-                      key={o.id}
-                      order={o}
-                      onAdvance={advanceOrder}
-                      onCancel={handleCancel}
-                    />
+                    <Ticket key={o.id} order={o} onAdvance={advanceOrder} onCancel={handleCancel} onSaveChange={handleSaveChange} />
                   ))
                 )}
               </div>
@@ -132,15 +119,21 @@ export default function PanelView({ onGoClient }) {
         })}
       </div>
 
-      <button
-        type="button"
-        className="fab"
-        onClick={() => setNewOrderOpen(true)}
-      >
+      <button type="button" className="fab" onClick={() => setNewOrderOpen(true)}>
         <PlusIcon /> Novo pedido
       </button>
 
       {newOrderOpen && <NewOrderSheet onClose={() => setNewOrderOpen(false)} onSave={handleSave} />}
+
+      {closingOpen && (
+        <ClosingSheet
+          orders={orders}
+          closings={closings}
+          addClosing={addClosing}
+          removeOrders={removeOrders}
+          onClose={() => setClosingOpen(false)}
+        />
+      )}
 
       {cancelTarget && (
         <ConfirmDialog
