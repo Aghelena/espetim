@@ -5,11 +5,11 @@ import CheckoutSheet from "./CheckoutSheet.jsx";
 import Confirm from "./Confirm.jsx";
 import { CartIcon, LockIcon } from "../icons.jsx";
 import Logo from "./Logo.jsx";
-import { MENU, WHATSAPP_NUMBER, FREE_ZONES, DELIVERY_FEE, PAY_METHODS } from "../data/menu.js";
+import { MENU, WHATSAPP_NUMBER, PAY_METHODS } from "../data/menu.js";
 import { brl, cartLines, subtotalOf, deliveryFeeFor, isOpenNow, nextOpeningLabel, genCode } from "../utils.js";
 import { useOrders } from "../hooks/useOrders.js";
 
-const EMPTY_CHECKOUT = { fulfillment: "retirada", cep: "", neighborhood: "", address: "", reference: "", payment: "", name: "", phone: "", notes: "" };
+const EMPTY_CHECKOUT = { fulfillment: "retirada", cep: "", neighborhood: "", address: "", number: "", reference: "", payment: "", name: "", phone: "", notes: "" };
 
 export default function ClientView({ onGoPanel }) {
   const [activeCat, setActiveCat] = useState(MENU[0].id);
@@ -38,13 +38,14 @@ export default function ClientView({ onGoPanel }) {
     if (!checkout.phone.trim()) return "telefone";
     if (!checkout.payment) return "pagamento";
     if (checkout.fulfillment === "entrega") {
-      if (!checkout.neighborhood) return "bairro";
+      if (!checkout.neighborhood) return "cep";
       if (!checkout.address.trim()) return "endereco";
+      if (!checkout.number.trim()) return "numero";
     }
     return "";
   }
 
-  function buildMessage(code, lines, subtotal, fee, total) {
+  function buildMessage(code, lines, subtotal, fee, total, fullAddress) {
     const rows = lines.map((l) => `${l.qty}x ${l.name} - ${brl(l.total)}`).join("\n");
     let out = `*Novo pedido — Espetim do Nin*\n`;
     out += `Código: ${code}\n\n`;
@@ -53,7 +54,7 @@ export default function ClientView({ onGoPanel }) {
     out += `Entrega: ${fee === 0 ? "Grátis" : brl(fee)}\n`;
     out += `*Total: ${brl(total)}*\n\n`;
     if (checkout.fulfillment === "entrega") {
-      out += `*Entrega em:* ${checkout.address}${checkout.reference ? " (ref: " + checkout.reference + ")" : ""} — ${checkout.neighborhood}${checkout.cep ? " (CEP " + checkout.cep + ")" : ""}\n`;
+      out += `*Entrega em:* ${fullAddress}${checkout.reference ? " (ref: " + checkout.reference + ")" : ""}${checkout.cep ? " (CEP " + checkout.cep + ")" : ""}\n`;
     } else {
       out += `*Retirada no local*\n`;
     }
@@ -73,7 +74,10 @@ export default function ClientView({ onGoPanel }) {
     const fee = deliveryFeeFor(checkout.fulfillment, checkout.neighborhood) || 0;
     const total = subtotal + fee;
     const code = genCode();
-    const message = buildMessage(code, lines, subtotal, fee, total);
+    const fullAddress = checkout.fulfillment === "entrega"
+      ? checkout.address.trim() + (checkout.number.trim() ? ", nº " + checkout.number.trim() : "")
+      : "";
+    const message = buildMessage(code, lines, subtotal, fee, total, fullAddress);
     const order = { code, total, message };
 
     // Cai no painel como "Aguardando pagamento" assim que o cliente confirma
@@ -87,7 +91,7 @@ export default function ClientView({ onGoPanel }) {
         fulfillment: checkout.fulfillment,
         cep: checkout.fulfillment === "entrega" ? checkout.cep : "",
         neighborhood: checkout.fulfillment === "entrega" ? checkout.neighborhood : "",
-        address: checkout.fulfillment === "entrega" ? checkout.address : "",
+        address: fullAddress,
         reference: checkout.fulfillment === "entrega" ? checkout.reference : "",
         payment: checkout.payment,
         items: lines.map((l) => ({ name: l.name, qty: l.qty, price: l.price })),

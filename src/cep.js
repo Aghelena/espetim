@@ -1,6 +1,20 @@
 // Busca de endereço por CEP via ViaCEP — gratuito, sem chave de API. Só
 // ajuda a preencher o formulário mais rápido; se a busca falhar ou o CEP
 // não existir, a pessoa continua preenchendo à mão normalmente.
+import { FREE_ZONE_CEP_RANGES } from "./data/menu.js";
+
+// Decide o frete sozinho a partir do CEP, usando as faixas cadastradas em
+// data/menu.js — não depende do nome do bairro que a ViaCEP devolve (o
+// nome oficial dos Correios às vezes não bate com o nome usado na loja).
+// Retorna o nome do bairro grátis, ou null se o CEP cair fora das faixas
+// (frete pago).
+export function zoneForCEP(cep) {
+  const digits = String(cep || "").replace(/\D/g, "");
+  if (digits.length !== 8) return null;
+  const n = parseInt(digits, 10);
+  const hit = FREE_ZONE_CEP_RANGES.find((r) => n >= r.from && n <= r.to);
+  return hit ? hit.zone : null;
+}
 
 export function formatCEP(value) {
   const digits = String(value || "").replace(/\D/g, "").slice(0, 8);

@@ -17,9 +17,19 @@ export const FREE_ZONES = [
 ];
 export const DELIVERY_FEE = 10;
 
+// Faixas de CEP (Franca, SP) de cada bairro grátis — usado pra calcular o
+// frete sozinho a partir do CEP digitado, sem depender do nome do bairro
+// que a busca devolve. Fora dessas faixas, cobra DELIVERY_FEE. "from"/"to"
+// são o CEP sem traço, como número.
+export const FREE_ZONE_CEP_RANGES = [
+  { zone: "Aeroporto I", from: 14404038, to: 14404075 },
+  { zone: "Aeroporto II", from: 14404099, to: 14404131 },
+  { zone: "Aeroporto III", from: 14404200, to: 14404268 },
+  { zone: "Parque Progresso", from: 14403079, to: 14403088 },
+];
+
 // Horário de funcionamento. day: 0=domingo ... 6=sábado.
 export const HOURS = [
-  { day: 2, label: "Terça", open: 17, close: 24 },
   { day: 3, label: "Quarta", open: 17, close: 24 },
   { day: 4, label: "Quinta", open: 17, close: 24 },
   { day: 5, label: "Sexta", open: 17, close: 24 },
@@ -51,18 +61,13 @@ export const MENU = [
       { id: "esp-kafta", name: "Kafta", price: 12 },
       { id: "esp-coalho", name: "Queijo Coalho", price: 13 },
       { id: "esp-coalho-mel", name: "Queijo Coalho com Mel", price: 14 },
-      { id: "esp-pao", name: "Pão de Alho", price: 8 }
     ],
   },
   {
     id: "combos",
     label: "Combos",
     icon: "star",
-    items: [{ id: "combo-1esp", name: "1 ESPETINHO + acompanhamento - Farofa, Vinagrete, Mandioca", price: 16 },
-      { id: "combo-2esp", name: "2 ESPETINHOS + acompanhamento - Farofa, Vinagrete, Mandioca", price: 23 },
-      { id: "combo-pao", name: "2 PÃES DE ALHO + acompanhamento - Farofa, Vinagrete, Mandioca", price: 16 },
-      { id: "combo-queijo", name: "2 QUEJINHO + acompanhamento - Farofa, Vinagrete, Mandioca", price: 20 }
-    ],
+    items: [{ id: "combo-2esp", name: "2 Espetos + Acompanhamento", price: 23 }],
   },
   {
     id: "acompanhamentos",
@@ -92,6 +97,10 @@ export const ITEMS_BY_ID = Object.fromEntries(
   MENU.flatMap((cat) => cat.items.map((it) => [it.id, it]))
 );
 
+// "aguardando_pagamento" é onde todo pedido feito pelo cliente (via
+// WhatsApp) entra primeiro — assim que ele confirma o envio, o pedido já
+// cai no painel nessa coluna. Um pedido registrado direto pelo painel
+// (balcão/telefone) entra em "recebido", pulando essa etapa.
 export const STATUS_FLOW = ["aguardando_pagamento", "recebido", "preparando", "pronto", "entregue"];
 export const STATUS_LABEL = {
   aguardando_pagamento: "Aguardando pagamento",
