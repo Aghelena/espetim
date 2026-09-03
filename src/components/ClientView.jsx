@@ -148,6 +148,7 @@ export default function ClientView({ onGoPanel }) {
             <span className="hours-chip">Sáb 14h–22h</span>
           </div>
         </div>
+        <a className="track-link" href="#acompanhar">Já fez um pedido? Acompanhar</a>
       </section>
 
       <CategoryNav active={activeCat} onSelect={selectCat} />

@@ -380,3 +380,54 @@ a{color:inherit;}
   color:var(--ink); font-size:.85rem; font-weight:700; margin-bottom:10px; cursor:pointer;
 }
 .btn-export svg{width:15px; height:15px;}
+
+/* ---------- acompanhar pedido (tela pública do cliente) ---------- */
+.track-link{
+  display:inline-block; margin-top:14px; font-size:.78rem; color:var(--muted);
+  text-decoration:underline; text-underline-offset:2px;
+}
+.track-page{padding:20px 20px 60px; max-width:480px; margin:0 auto;}
+.track-back{
+  display:flex; align-items:center; gap:6px; background:none; border:none; color:var(--muted);
+  font-size:.8rem; font-weight:700; padding:10px 0 18px;
+}
+.track-back svg{width:14px; height:14px;}
+
+.track-form{text-align:center; padding:26px 4px;}
+.track-form h2{font-size:1.25rem; margin-bottom:8px; color:var(--ink);}
+.track-form p{color:var(--muted); font-size:.88rem; margin-bottom:18px;}
+.track-form .field input{text-align:center; text-transform:uppercase; letter-spacing:.06em; font-family:'Space Mono';}
+
+.track-loading{text-align:center; color:var(--muted); font-size:.88rem; padding:40px 10px;}
+
+.track-notfound{text-align:center; padding:30px 10px;}
+.track-notfound h2{font-size:1.15rem; margin-bottom:8px; color:var(--ink);}
+.track-notfound p{color:var(--muted); font-size:.88rem; margin-bottom:18px; line-height:1.5;}
+
+.track-card{padding:10px 4px 4px; text-align:center;}
+.track-fulfillment{color:var(--muted); font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-top:2px;}
+.track-waiting{color:var(--muted); font-size:.88rem; line-height:1.5; margin:22px auto; max-width:32ch;}
+
+.track-stepper{display:flex; flex-direction:column; gap:0; margin:26px 4px; text-align:left;}
+.track-step{display:flex; align-items:center; gap:14px; position:relative; padding-bottom:26px;}
+.track-step:last-child{padding-bottom:0;}
+.track-step::before{
+  content:""; position:absolute; left:15px; top:32px; bottom:0; width:2px; background:var(--line);
+}
+.track-step:last-child::before{display:none;}
+.track-step.done::before{background:var(--ok);}
+.track-dot{
+  flex:0 0 auto; width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+  background:var(--surface-2); border:1.5px solid var(--line); color:var(--faint);
+  font-family:'Space Mono'; font-weight:700; font-size:.85rem; z-index:1;
+}
+.track-dot svg{width:15px; height:15px;}
+.track-step.done .track-dot{background:var(--ok-tint); border-color:var(--ok); color:var(--ok);}
+.track-step.current .track-dot{background:var(--accent); border-color:var(--accent); color:#fff;}
+.track-label{font-size:.9rem; font-weight:600; color:var(--faint);}
+.track-step.done .track-label{color:var(--muted);}
+.track-step.current .track-label{color:var(--ink); font-weight:800;}
+
+.track-items{border-top:1px dashed var(--line); padding-top:14px; margin-top:22px; text-align:left; display:flex; flex-direction:column; gap:6px;}
+.track-item{font-size:.85rem; color:var(--muted);}
+.track-total{margin-top:12px; font-size:.95rem; color:var(--ink);}
