@@ -46,6 +46,7 @@ export const LOW_FEE_CEP_RANGES = [
 
 // Horário de funcionamento. day: 0=domingo ... 6=sábado.
 export const HOURS = [
+  { day: 1, label: "Segunda", open: 17, close: 22 },
   { day: 3, label: "Quarta", open: 17, close: 22 },
   { day: 4, label: "Quinta", open: 17, close: 22 },
   { day: 5, label: "Sexta", open: 17, close: 22 },
