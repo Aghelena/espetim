@@ -6,7 +6,7 @@ import ConfirmDialog from "./ConfirmDialog.jsx";
 import ClosingSheet from "./ClosingSheet.jsx";
 import { useOrders } from "../hooks/useOrders.js";
 import { useClosings } from "../hooks/useClosings.js";
-import { STATUS_FLOW, STATUS_LABEL, STATUS_COLOR } from "../data/menu.js";
+import { BOARD_COLUMNS } from "../data/menu.js";
 import { BackIcon, LogoutIcon, PlusIcon, DownloadIcon, CashIcon } from "../icons.jsx";
 import Logo from "./Logo.jsx";
 import { exportTodayOrders } from "../csv.js";
@@ -65,6 +65,9 @@ export default function PanelView({ onGoClient }) {
     setNewOrderOpen(false);
   }
   function handleExport() {
+    // Junta os pedidos ainda no quadro com os que já foram arquivados por
+    // um fechamento de caixa hoje, pra planilha do dia sair completa mesmo
+    // depois de fechar o caixa uma ou mais vezes.
     const today = storeDateKey();
     const fromClosings = closings.filter((c) => c.dateKey === today).flatMap((c) => c.orders || []);
     exportTodayOrders([...orders, ...fromClosings]);
@@ -97,12 +100,12 @@ export default function PanelView({ onGoClient }) {
       )}
 
       <div className="board">
-        {STATUS_FLOW.map((status) => {
-          const list = orders.filter((o) => o.status === status).sort((a, b) => a.createdAt - b.createdAt);
+        {BOARD_COLUMNS.map((col) => {
+          const list = orders.filter(col.match).sort((a, b) => a.createdAt - b.createdAt);
           return (
-            <div className="col" style={{ "--col-c": STATUS_COLOR[status] }} key={status}>
+            <div className="col" style={{ "--col-c": col.color }} key={col.key}>
               <div className="col-head">
-                <h3>{STATUS_LABEL[status]}</h3>
+                <h3>{col.label}</h3>
                 <span className="n">{list.length}</span>
               </div>
               <div className="col-body">

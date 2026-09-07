@@ -1,4 +1,4 @@
-import { FREE_ZONES, DELIVERY_FEE, HOURS, TIME_ZONE, ITEMS_BY_ID } from "./data/menu.js";
+import { LOW_FEE_ZONES, LOW_DELIVERY_FEE, DELIVERY_FEE, HOURS, TIME_ZONE, ITEMS_BY_ID } from "./data/menu.js";
 
 export function brl(n) {
   return "R$ " + (Math.round(n * 100) / 100).toFixed(2).replace(".", ",");
@@ -95,5 +95,5 @@ export function subtotalOf(cart) {
 export function deliveryFeeFor(fulfillment, neighborhood) {
   if (fulfillment !== "entrega") return 0;
   if (!neighborhood) return null; // ainda não escolhido
-  return FREE_ZONES.includes(neighborhood) ? 0 : DELIVERY_FEE;
+  return LOW_FEE_ZONES.includes(neighborhood) ? LOW_DELIVERY_FEE : DELIVERY_FEE;
 }

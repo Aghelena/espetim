@@ -1,6 +1,6 @@
 import { useRef, useState } from "react";
 import MenuPicker from "./MenuPicker.jsx";
-import { DELIVERY_FEE, PAY_METHODS } from "../data/menu.js";
+import { LOW_DELIVERY_FEE, DELIVERY_FEE, PAY_METHODS } from "../data/menu.js";
 import { brl, cartLines, subtotalOf, deliveryFeeFor, genCode } from "../utils.js";
 import { lookupCEP, formatCEP, zoneForCEP } from "../cep.js";
 import { PlusIcon } from "../icons.jsx";
@@ -28,7 +28,7 @@ export default function NewOrderSheet({ onClose, onSave }) {
 
   // O frete já é decidido na hora pelo CEP, usando as faixas cadastradas em
   // data/menu.js (não depende do nome do bairro que a ViaCEP devolve). A
-  // busca à ViaCEP só entra depois, pra preencher a rua e o bairro.
+  // busca à ViaCEP só entra depois, pra preencher a rua.
   async function handleCep(raw) {
     const formatted = formatCEP(raw);
     field("cep", formatted);
@@ -115,13 +115,13 @@ export default function NewOrderSheet({ onClose, onSave }) {
               {cepStatus === "loading" && <p className="cep-hint">Buscando endereço…</p>}
               {cepStatus === "found" && (
                 <p className="cep-hint">
-                  Frete: {form.neighborhood === "Outro" ? brl(DELIVERY_FEE) : "grátis"}.
+                  Frete: {brl(form.neighborhood === "Outro" ? DELIVERY_FEE : LOW_DELIVERY_FEE)}.
                   {cepBairro ? ` Endereço preenchido (bairro dos Correios: ${cepBairro}).` : " Preenche a rua abaixo se não veio certo."}
                 </p>
               )}
               {cepStatus === "notfound" && (
                 <p className="cep-hint cep-warn">
-                  Não encontrei a rua desse CEP, preenche à mão abaixo — mas o frete já foi calculado: {form.neighborhood === "Outro" ? brl(DELIVERY_FEE) : "grátis"}.
+                  Não encontrei a rua desse CEP, preenche à mão abaixo — mas o frete já foi calculado: {brl(form.neighborhood === "Outro" ? DELIVERY_FEE : LOW_DELIVERY_FEE)}.
                 </p>
               )}
               {needsCep && cepStatus === "idle" && (

@@ -29,7 +29,9 @@ export default function Ticket({ order, onAdvance, onCancel, onSaveChange }) {
       <div className="ticket-phone">{order.customerPhone || ""}</div>
       <div className="ticket-badges">
         <span className="badge">{isEntrega ? "Entrega" : "Retirada"}</span>
-        {isEntrega && <span className="badge">{order.neighborhood}</span>}
+        {isEntrega && order.neighborhood && order.neighborhood !== "Outro" && (
+          <span className="badge">{order.neighborhood}</span>
+        )}
         <span className="badge">{(PAY_METHODS.find((p) => p.id === order.payment) || {}).label || order.payment}</span>
       </div>
       <div className="ticket-items">
