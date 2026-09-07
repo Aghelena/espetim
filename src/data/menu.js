@@ -30,10 +30,11 @@ export const FREE_ZONE_CEP_RANGES = [
 
 // Horário de funcionamento. day: 0=domingo ... 6=sábado.
 export const HOURS = [
-  { day: 3, label: "Quarta", open: 17, close: 24 },
-  { day: 4, label: "Quinta", open: 17, close: 24 },
-  { day: 5, label: "Sexta", open: 17, close: 24 },
-  { day: 6, label: "Sábado", open: 14, close: 24 },
+  { day: 1, label: "Segunda", open: 17, close: 22 },
+  { day: 3, label: "Quarta", open: 17, close: 22 },
+  { day: 4, label: "Quinta", open: 17, close: 22 },
+  { day: 5, label: "Sexta", open: 17, close: 22 },
+  { day: 6, label: "Sábado", open: 14, close: 22 },
 ];
 
 // Fuso horário usado para calcular se a loja está aberta agora.
@@ -101,12 +102,18 @@ export const ITEMS_BY_ID = Object.fromEntries(
 // WhatsApp) entra primeiro — assim que ele confirma o envio, o pedido já
 // cai no painel nessa coluna. Um pedido registrado direto pelo painel
 // (balcão/telefone) entra em "recebido", pulando essa etapa.
-export const STATUS_FLOW = ["aguardando_pagamento", "recebido", "preparando", "pronto", "entregue"];
+//
+// "saiu_para_entrega" só existe pra pedidos de ENTREGA — depois de
+// "pronto" (ficou pronto na cozinha), a entrega ainda precisa sair pra
+// rua. Pedido de RETIRADA pula essa coluna: de "pronto" já vai direto
+// pra "entregue" quando o cliente retira (ver nextStatus abaixo).
+export const STATUS_FLOW = ["aguardando_pagamento", "recebido", "preparando", "pronto", "saiu_para_entrega", "entregue"];
 export const STATUS_LABEL = {
   aguardando_pagamento: "Aguardando pagamento",
   recebido: "Recebido",
   preparando: "Preparando",
   pronto: "Pronto",
+  saiu_para_entrega: "Saiu para entrega",
   entregue: "Entregue",
 };
 export const STATUS_COLOR = {
@@ -114,11 +121,30 @@ export const STATUS_COLOR = {
   recebido: "#e0221a",
   preparando: "#15100e",
   pronto: "#1f9254",
+  saiu_para_entrega: "#2f6fb3",
   entregue: "#8a7f77",
 };
 export const STATUS_ACTION = {
   aguardando_pagamento: "Confirmar pagamento",
   recebido: "Iniciar preparo",
   preparando: "Marcar pronto",
-  pronto: "Marcar entregue",
+  saiu_para_entrega: "Marcar entregue",
 };
+
+// Próximo status ao avançar um pedido no painel. O único ponto onde
+// retirada e entrega se separam é em "pronto": quem retira no local pode
+// ser marcado como entregue direto; quem recebe em casa primeiro sai
+// para entrega.
+export function nextStatus(status, fulfillment) {
+  if (status === "pronto" && fulfillment !== "entrega") return "entregue";
+  const i = STATUS_FLOW.indexOf(status);
+  if (i < 0 || i >= STATUS_FLOW.length - 1) return null;
+  return STATUS_FLOW[i + 1];
+}
+
+// Texto do botão de avançar no painel — também depende do tipo do pedido
+// só na etapa "pronto".
+export function actionLabelFor(status, fulfillment) {
+  if (status === "pronto") return fulfillment === "entrega" ? "Marcar saiu para entrega" : "Marcar entregue";
+  return STATUS_ACTION[status];
+}

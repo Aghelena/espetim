@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { STATUS_FLOW } from "../data/menu.js";
+import { nextStatus } from "../data/menu.js";
 import { db, isFirebaseConfigured } from "../firebase.js";
 import {
   collection,
@@ -91,16 +91,16 @@ export function useOrders() {
       if (isFirebaseConfigured) {
         const current = orders.find((o) => o.id === id);
         if (!current) return;
-        const i = STATUS_FLOW.indexOf(current.status);
-        if (i < 0 || i >= STATUS_FLOW.length - 1) return;
-        return updateDoc(doc(db, "orders", id), { status: STATUS_FLOW[i + 1], updatedAt: Date.now() });
+        const next = nextStatus(current.status, current.fulfillment);
+        if (!next) return;
+        return updateDoc(doc(db, "orders", id), { status: next, updatedAt: Date.now() });
       }
       setOrders((prev) => {
         const next = prev.map((o) => {
           if (o.id !== id) return o;
-          const i = STATUS_FLOW.indexOf(o.status);
-          if (i < 0 || i >= STATUS_FLOW.length - 1) return o;
-          return { ...o, status: STATUS_FLOW[i + 1], updatedAt: Date.now() };
+          const n = nextStatus(o.status, o.fulfillment);
+          if (!n) return o;
+          return { ...o, status: n, updatedAt: Date.now() };
         });
         saveLocal(next);
         return next;

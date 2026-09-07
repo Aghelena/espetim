@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { PAY_METHODS, STATUS_COLOR, STATUS_ACTION } from "../data/menu.js";
+import { PAY_METHODS, STATUS_COLOR, actionLabelFor } from "../data/menu.js";
 import { brl, timeAgo } from "../utils.js";
 import { CheckIcon, CalcIcon } from "../icons.jsx";
 import ChangeCalcDialog from "./ChangeCalcDialog.jsx";
@@ -9,7 +9,7 @@ export default function Ticket({ order, onAdvance, onCancel, onSaveChange }) {
   const isEntrega = order.fulfillment === "entrega";
   const isDinheiro = order.payment === "dinheiro";
   const color = STATUS_COLOR[order.status];
-  const action = STATUS_ACTION[order.status];
+  const action = actionLabelFor(order.status, order.fulfillment);
 
   function saveChange(received, change) {
     onSaveChange(order.id, received, change);

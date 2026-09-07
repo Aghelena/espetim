@@ -11,7 +11,13 @@ const STORAGE_KEY = "espetim_orders_v1";
 // Etapas mostradas pro cliente depois que o pagamento é confirmado. O
 // "aguardando_pagamento" tem uma tela própria (ver abaixo) em vez de entrar
 // nessa lista, porque nesse momento ainda não tem preparo em andamento.
-const TRACK_STEPS = ["recebido", "preparando", "pronto", "entregue"];
+//
+// Pedido de retirada não passa por "saiu_para_entrega" (ele mesmo busca no
+// balcão), então some da linha do tempo; pedido de entrega passa pelas
+// duas etapas — "pronto" (ficou pronto na cozinha) e depois "saiu para
+// entrega" — como passos bem separados.
+const TRACK_STEPS_RETIRADA = ["recebido", "preparando", "pronto", "entregue"];
+const TRACK_STEPS_ENTREGA = ["recebido", "preparando", "pronto", "saiu_para_entrega", "entregue"];
 
 function loadLocalOrders() {
   try {
@@ -96,8 +102,9 @@ export default function OrderTrack({ code: initialCode, onGoClient }) {
     setChecked(false);
   }
 
-  const stepIndex = order ? TRACK_STEPS.indexOf(order.status) : -1;
   const isEntrega = order?.fulfillment === "entrega";
+  const TRACK_STEPS = isEntrega ? TRACK_STEPS_ENTREGA : TRACK_STEPS_RETIRADA;
+  const stepIndex = order ? TRACK_STEPS.indexOf(order.status) : -1;
 
   return (
     <>
@@ -157,7 +164,7 @@ export default function OrderTrack({ code: initialCode, onGoClient }) {
                 {TRACK_STEPS.map((s, i) => {
                   const done = i <= stepIndex;
                   let label = STATUS_LABEL[s];
-                  if (s === "pronto") label = isEntrega ? "Saiu para entrega" : "Pronto para retirada";
+                  if (s === "pronto" && !isEntrega) label = "Pronto para retirada";
                   return (
                     <div key={s} className={"track-step" + (done ? " done" : "") + (i === stepIndex ? " current" : "")}>
                       <span className="track-dot">{done ? <CheckIcon /> : i + 1}</span>
