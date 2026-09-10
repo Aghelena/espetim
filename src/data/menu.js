@@ -122,6 +122,13 @@ export const ITEMS_BY_ID = Object.fromEntries(
   MENU.flatMap((cat) => cat.items.map((it) => [it.id, it]))
 );
 
+// Tempo médio, em minutos, usado só pra estimar a fila na tela de
+// acompanhamento do cliente. Não é um cronômetro exato — é uma média pra
+// dar uma ideia de quanto falta, calculada sozinha a partir de quantos
+// pedidos estão na frente na cozinha agora.
+export const AVG_PREP_MINUTES = 25; // tempo médio de preparo de 1 pedido na cozinha
+export const AVG_DELIVERY_MINUTES = 25 - 30; // tempo médio da entrega depois de pronta
+
 // "aguardando_pagamento" é onde todo pedido feito pelo cliente (via
 // WhatsApp) entra primeiro — assim que ele confirma o envio, o pedido já
 // cai no painel nessa coluna. Um pedido registrado direto pelo painel

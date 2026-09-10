@@ -1,4 +1,17 @@
-import { LOW_FEE_ZONES, LOW_DELIVERY_FEE, DELIVERY_FEE, HOURS, TIME_ZONE, ITEMS_BY_ID } from "./data/menu.js";
+import {
+  LOW_FEE_ZONES,
+  LOW_DELIVERY_FEE,
+  DELIVERY_FEE,
+  HOURS,
+  TIME_ZONE,
+  ITEMS_BY_ID,
+  AVG_PREP_MINUTES,
+  AVG_DELIVERY_MINUTES,
+} from "./data/menu.js";
+
+// Status em que um pedido ainda está na fila da cozinha — usado só pra
+// estimar o tempo de espera na tela de acompanhamento do cliente.
+export const QUEUE_STATUSES = ["recebido", "preparando"];
 
 export function brl(n) {
   return "R$ " + (Math.round(n * 100) / 100).toFixed(2).replace(".", ",");
@@ -96,4 +109,30 @@ export function deliveryFeeFor(fulfillment, neighborhood) {
   if (fulfillment !== "entrega") return 0;
   if (!neighborhood) return null; // ainda não escolhido
   return LOW_FEE_ZONES.includes(neighborhood) ? LOW_DELIVERY_FEE : DELIVERY_FEE;
+}
+
+// Estima quantos minutos faltam pro pedido, na tela de acompanhamento do
+// cliente. "queueOrders" é a lista (de todo mundo) dos pedidos hoje em
+// "recebido"/"preparando" — a posição do pedido nessa fila, ordenada por
+// horário do pedido, define quanto tempo de cozinha ainda falta.
+export function estimateWaitMinutes(order, queueOrders) {
+  if (!order) return null;
+  const isEntrega = order.fulfillment === "entrega";
+
+  if (QUEUE_STATUSES.includes(order.status)) {
+    const queue = [...(queueOrders || [])].sort((a, b) => a.createdAt - b.createdAt);
+    const position = queue.findIndex((o) => o.id === order.id);
+    const kitchenMinutes = (position < 0 ? queue.length : position + 1) * AVG_PREP_MINUTES;
+    return isEntrega ? kitchenMinutes + AVG_DELIVERY_MINUTES : kitchenMinutes;
+  }
+
+  if (order.status === "pronto") {
+    return isEntrega ? AVG_DELIVERY_MINUTES : 0;
+  }
+
+  if (order.status === "saiu_para_entrega") {
+    return Math.max(5, Math.round(AVG_DELIVERY_MINUTES / 2));
+  }
+
+  return null;
 }

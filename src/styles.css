@@ -407,6 +407,8 @@ a{color:inherit;}
 .track-card{padding:10px 4px 4px; text-align:center;}
 .track-fulfillment{color:var(--muted); font-size:.85rem; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-top:2px;}
 .track-waiting{color:var(--muted); font-size:.88rem; line-height:1.5; margin:22px auto; max-width:32ch;}
+.track-eta{display:inline-block; margin:10px auto 0; padding:5px 14px; border-radius:999px; background:var(--accent); color:#fff; font-size:.82rem; font-weight:700;}
+.track-waiting{color:var(--muted); font-size:.88rem; line-height:1.5; margin:22px auto; max-width:32ch;}
 
 .track-stepper{display:flex; flex-direction:column; gap:0; margin:26px 4px; text-align:left;}
 .track-step{display:flex; align-items:center; gap:14px; position:relative; padding-bottom:26px;}

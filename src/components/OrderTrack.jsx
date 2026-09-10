@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Logo from "./Logo.jsx";
 import { BackIcon, CheckIcon } from "../icons.jsx";
-import { brl } from "../utils.js";
+import { brl, estimateWaitMinutes, QUEUE_STATUSES } from "../utils.js";
 import { STATUS_LABEL } from "../data/menu.js";
 import { db, isFirebaseConfigured } from "../firebase.js";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
@@ -37,6 +37,7 @@ export default function OrderTrack({ code: initialCode, onGoClient }) {
   const [code, setCode] = useState((initialCode || "").trim().toUpperCase());
   const [order, setOrder] = useState(null);
   const [checked, setChecked] = useState(false);
+  const [queueOrders, setQueueOrders] = useState([]); // pedidos hoje em recebido/preparando (de todo mundo) — só pra estimar o tempo
 
   useEffect(() => {
     setCodeInput(initialCode || "");
@@ -51,27 +52,37 @@ export default function OrderTrack({ code: initialCode, onGoClient }) {
   useEffect(() => {
     if (!code) {
       setOrder(null);
+      setQueueOrders([]);
       setChecked(false);
       return;
     }
     setChecked(false);
 
     if (isFirebaseConfigured) {
-      const q = query(collection(db, "orders"), where("code", "==", code));
-      const unsub = onSnapshot(
-        q,
+      const qOrder = query(collection(db, "orders"), where("code", "==", code));
+      const unsubOrder = onSnapshot(
+        qOrder,
         (snap) => {
           setOrder(snap.empty ? null : { id: snap.docs[0].id, ...snap.docs[0].data() });
           setChecked(true);
         },
         () => setChecked(true)
       );
-      return unsub;
+      const qQueue = query(collection(db, "orders"), where("status", "in", QUEUE_STATUSES));
+      const unsubQueue = onSnapshot(qQueue, (snap) => {
+        setQueueOrders(snap.docs.map((d) => ({ id: d.id, createdAt: d.data().createdAt })));
+      });
+      return () => {
+        unsubOrder();
+        unsubQueue();
+      };
     }
 
     function lookup() {
-      const found = loadLocalOrders().find((o) => (o.code || "").toUpperCase() === code);
+      const all = loadLocalOrders();
+      const found = all.find((o) => (o.code || "").toUpperCase() === code);
       setOrder(found || null);
+      setQueueOrders(all.filter((o) => QUEUE_STATUSES.includes(o.status)).map((o) => ({ id: o.id, createdAt: o.createdAt })));
       setChecked(true);
     }
     lookup();
@@ -105,6 +116,18 @@ export default function OrderTrack({ code: initialCode, onGoClient }) {
   const isEntrega = order?.fulfillment === "entrega";
   const TRACK_STEPS = isEntrega ? TRACK_STEPS_ENTREGA : TRACK_STEPS_RETIRADA;
   const stepIndex = order ? TRACK_STEPS.indexOf(order.status) : -1;
+
+  // Estimativa automática de tempo, calculada pela fila da cozinha — some
+  // sozinha quando o pedido está aguardando pagamento ou já foi entregue.
+  const waitMinutes = estimateWaitMinutes(order, queueOrders);
+  const etaLabel =
+    waitMinutes == null
+      ? null
+      : order.status === "pronto" && !isEntrega
+      ? "Já pode retirar!"
+      : order.status === "saiu_para_entrega"
+      ? `Chegando em ~${waitMinutes} min`
+      : `Previsão: ~${waitMinutes} min`;
 
   return (
     <>
@@ -153,6 +176,7 @@ export default function OrderTrack({ code: initialCode, onGoClient }) {
           <div className="track-card">
             <div className="order-code">{order.code}</div>
             <p className="track-fulfillment">{isEntrega ? "Entrega" : "Retirada no local"}</p>
+            {etaLabel && <p className="track-eta">{etaLabel}</p>}
 
             {order.status === "aguardando_pagamento" ? (
               <p className="track-waiting">
