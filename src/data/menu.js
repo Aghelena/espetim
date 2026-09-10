@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------------------
 
 // Número de WhatsApp que recebe os pedidos (DDI + DDD + número, só dígitos).
-export const WHATSAPP_NUMBER = "5516991707559";
+export const WHATSAPP_NUMBER = "5516994132743";
 
 // PIN de 4 dígitos para abrir o painel interno da equipe.
 export const PANEL_PIN = "7559";
