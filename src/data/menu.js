@@ -112,7 +112,7 @@ export const MENU = [
       { id: "beb-aguag", name: "Água com Gás", price: 3.5 },
       { id: "beb-coca", name: "Coca-Cola", price: 6.5 },
       { id: "beb-guarana", name: "Guaraná", price: 5 },
-      { id: "beb-romarinho", name: "Romarinho Antartica", price: 4.5 },
+      { id: "beb-romarinho", name: "Romarinho Antártica", price: 4.5 },
       { id: "beb-romarinho", name: "Romarinho Brahma", price: 4.5 },
     ],
   },
